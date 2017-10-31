@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import {render} from 'react-dom'
 
 import './index.less'
+
 import Game from './components/Game'
 
 class App extends Component {

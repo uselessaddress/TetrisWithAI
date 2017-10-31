@@ -1,0 +1,64 @@
+.game_table{
+    font-size: 1rem;
+    text-align: center;
+    position: relative;
+    .data_table{
+        margin-top:40px;
+        & span{
+            margin-left:20px;
+            margin-right:20px;
+        }
+    }
+    .btn_table{
+        margin-top:40px;
+    }
+    .btn{
+        background: #66ccff;
+        color:white;
+        width:210px;
+        margin-top:40px;
+        padding:5px 15px;
+        &:hover{
+            background:#93daf8;
+            cursor: pointer;
+        }
+    }
+    .btn_pause{
+        background: #66ccff;
+        color:white;
+        width:40px;
+        margin-left:30px;
+        margin-right:30px;
+        padding:5px 15px ;
+        &:hover{
+            background:#93daf8;
+            cursor: pointer;
+        }
+    }
+    &>canvas{
+        border:1px solid #000000;
+        box-shadow: #334466 0.5px 0.5px;
+        margin-top:10px
+    }
+    .preview{
+        
+         &>canvas{
+             border:1px solid #000000;
+             box-shadow: #334466 0.5px 0.5px;
+             margin-top:20px
+         }
+       
+      }
+    .gameover{
+        position: absolute;
+        color:red;
+        transform:rotate(30deg);
+        left:54%;
+    }
+
+    
+   
+}
+
+
+

@@ -99,7 +99,7 @@ const buildMatrix = function(rows,cols,val){
     return array;
 }
 
-const buildMainMatrix = function(rows,cols){
+const buildMainMatrix = function(rows,cols,val){
     let array = new Array(rows)
     for(let i=0;i<rows;i++){
         array[i] = new Array(cols)
@@ -109,7 +109,12 @@ const buildMainMatrix = function(rows,cols){
             }else if(j===0||j===1||j===cols-1||j===cols-2){
                 array[i][j] = '-2'
             }else{
-                array[i][j] = null
+                if(val){
+                    //是否有回调
+                    array[i][j] = typeof(val)==='function'?val(i,j,array):val
+                }else{
+                    array[i][j] = null
+                }
             }
         }
     }
@@ -327,7 +332,7 @@ class Grid extends Component {
         let tile = null;
        
         if(this.state.data && this.state.data.length && this.state.data[0].length){
-            console.log(this.state.data)
+            // console.log(this.state.data)
             for(let row = 0;row < this.state.data.length-2;row++){
                 for(let col = 0;col < this.state.data[row].length;col++){
                     // if(col===0||col===1||col===this.state.data[row].length-1||this.state.data[row].length-1-2){

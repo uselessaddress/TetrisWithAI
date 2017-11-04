@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 
 import './Game.less'
 import Grid,{Tile, Tetris, buildMatrix,buildMainMatrix} from './Grid';
+import AI from './AI'
 
 class Game extends Component {
     constructor(props) {
@@ -17,6 +18,26 @@ class Game extends Component {
 
         this.timer_input = null
         this.interval_input = 500;
+
+        this.enableKeyboard = true
+        this.interval_ai = 1;
+        this.useAI = false
+ 
+        let aiSeed = {
+            alpha:-0.03702270705799994,
+            beta:-0.12705154760967602,
+            gama:-0.15218776708445955,
+            delta:-0.027255935907477033
+        }
+
+        this.ai = new AI(aiSeed.alpha,
+                        aiSeed.beta,
+                        aiSeed.gama,
+                        aiSeed.delta)
+        this.ai.seed = aiSeed
+        
+        this.aiAction = [];
+
         this.status = 1; // 0: pause, 1: running, -1: game over
     }
 
@@ -39,19 +60,14 @@ class Game extends Component {
         )
         return tetris;
     }
-    componentDidUpdate() {
-       
-    }
     //新建方块
     dropNew = ()=>{
-        console.log(this.state.data)
         if(this.status <= 0){
             return ;
         }
         console.log("new")
         let next = this.setPreviewPosition(Tetris.random());
         let active = this.state.next?this.setNewTetrisPosition(this.state.next):this.setNewTetrisPosition(Tetris.random());
-        console.log(active)
         this.setState({
             active:active,
             next:next
@@ -123,9 +139,23 @@ class Game extends Component {
                     this.state.score += this.clear();
                     this.state.total ++;
                     this.dropNew()
+                }else if(r && this.useAI){
+                    this.setState({
+                        data:this.state.data,
+                        active: this.state.active,
+                        total: this.state.total,
+                        score: this.state.score
+                    });
+                    this.refs.main.setState({
+                        data: this.state.data,
+                        active: this.state.active
+                    });
+                    this.refs.preview.setState({
+                        active: this.state.next
+                    });
+                    window.setTimeout( this.aiStep.bind(this), this.interval_ai);
+                    return;
                 }
-                
-                
                 break;
             case 0x26: //up anticlockwise
                 r = this.state.active.turn(false,this.rows,this.cols);
@@ -183,35 +213,12 @@ class Game extends Component {
 
     moveActiveDown = ()=>{
         
-        // console.log(this.state.active)
+ 
         let bottom = this.state.active.row + this.state.active.height();
-        // console.log(bottom,this.rows)
+   
         if(bottom <= this.rows){
 
-            // console.log(this.state.active.height())
-            // console.log(this.state.active.data[this.state.active.height()-1])
-            // let zeroArray = ['0','0','0','0'];
-            // let compare = (array1, array2) =>
-            // {
-            //     return (array1.length == array2.length) && array1.every((element, index)=>{return element === array2[index]; })
-            // }
-            // if(bottom === this.rows){
-            //     console.log("bommmmmm!")
-            //     //  console.log(this.state.active.data[this.state.active.height()-1])
-            //     //   console.log(this.state.active.data[this.state.active.height()-2])
-               
-                
-            //     if(compare(this.state.active.data[this.state.active.height()-1],zeroArray)&&compare(this.state.active.data[this.state.active.height()-2],zeroArray)){
-            //         this.state.active.row++
-            //         console.log("boommmmmmmm")
-            //         return true 
-            //     }
-            //      if(compare(this.state.active.data[this.state.active.height()-1],zeroArray)){
-            //         this.state.active.row++
-            //         console.log("boommmmmmmm")
-            //         return true 
-            //     }
-            // }
+    
             this.state.active.row++
             if(Game.testCollsion(this.state.data,this.state.active)){
                 this.state.active.row --;
@@ -241,35 +248,15 @@ class Game extends Component {
 
     //碰撞测试
     static testCollsion(matrix,tetris){
-        // let zeroArray = ['0','0','0','0'];
-        // let compare = (array1, array2) =>
-        // {
-        //     return (array1.length == array2.length) 
-        //     && array1.every((element, index)=>{return element === array2[index]; })
-        // }
-        // let maxRow ,maxMin;
+      
         for(let row = 0;row < tetris.height(); row++){
             for(let col = 0;col < tetris.width();col++){
-        //         console.log(tetris.data[tetris.height()-1])
-        //         if(compare(tetris.data[tetris.height()-1],zeroArray)
-        //         &&compare(tetris.data[tetris.height()-2],zeroArray)){
-        //             maxRow = 1
-        //         }
-        //         else if(compare(tetris.data[tetris.height()-1],zeroArray)){
-        //             maxRow = 2
-        //         }else{
-        //             maxRow = row
-        //         }
-
                 if((tetris.row + row >= matrix.length)
                     ||(tetris.col + col >= matrix[0].length)
                     ||(matrix[tetris.row + row][tetris.col + col] !== null
                     && tetris.getTile(row,col) !== null
                     )){ 
                         
-// 
-                        console.log("boom!")
-                        console.log(tetris)
                         return true;
                 }
             }   
@@ -311,34 +298,81 @@ class Game extends Component {
            
         }
     }
-    
 
     gameover=()=>{
         this.setState({
-            gameover:'游戏结束！'
-              
+            gameover:'游戏结束！' 
         })
         this.status = 0     
-        console.log("game over")
-        if(this.timer_input){
-            window.clearTimeout(this.timer_input);
+        if(this.timer_ai) window.clearTimeout(this.timer_ai);
+        if(this.timer_input) window.clearTimeout(this.timer_input);
+        this.timer_ai = this.timer_input = null;
+        let state = this.state;
+        if(this.props.onGameOver){
+            this.props.onGameOver.call(this, state);
         }
     }
+    aiStep(){
+        if(this.timer_ai){
+            window.clearTimeout(this.timer_ai)
+        }
+        this.timer_ai = null;
+        if(this.aiAction.length === 0){
+            this.aiAction = this.ai.think(this);
+            // console.log(this.aiAction)
+        }
+        let step = this.aiAction.shift();
+        // console.log(step)
+        if(step && step.code){
+            this.doAction(step.code);
+        }
+
+        if(this.aiAction.length>0){
+            // console.log(this.aiAction.length)
+            // console.log(this.aiAction)
+            this.timer_ai = window.setTimeout(this.aiStep.bind(this),
+            this.interval_ai)
+        }else{
+            console.log("NO")
+            this.doAction(0x20)
+        }
+        
+    }
+    automation=()=>{
+        if(this.status === 1){ //变为AI
+            if(this.timer_input){
+                window.clearTimeout(this.timer_input);
+                this.timer_input = null;
+            }
+            this.status = 2
+            this.useAI = true
+            this.aiStep();
+        }else if(this.status === 2 && this.useAI){ //变为手动
+            if(this.timer_ai){
+                window.clearTimeout(this.timer_ai);
+            }
+            this.status = 1
+            this.useAI = false
+            this.autoDrop();
+        }
+    }
+
+
+
     handleStartBtn=()=>{
         window.location.reload()
     }
     handlePauseBtn=()=>{
-        let status = this.status?0:1
-        if(status === 0){
+        console.log(this.status)
+        if(this.status === 1){
             this.status = 0
             if(this.timer_input){
                 window.clearTimeout(this.timer_input);
             }
-        }else{
-            this.status = 1
-            this.timer_input = window.setTimeout(this.autoDrop.bind(this),this.interval_input)
+        }else if(this.status === 0){
+                this.status = 1
+                this.timer_input = window.setTimeout(this.autoDrop.bind(this),this.interval_input)
         }
-        
        
     }
     render() {
@@ -363,7 +397,7 @@ class Game extends Component {
                     <span className="btn_pause" onClick={this.handlePauseBtn}>暂停</span>
                 </div>
                 
-                <div className="btn">AI控制</div>
+                <div className="btn" onClick={this.automation}>AI控制</div>
             </div>
         );
     }

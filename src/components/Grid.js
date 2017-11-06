@@ -215,7 +215,7 @@ class Tetris{
                         // console.log(col,3-row)
                          /*顺时针旋转规则：
                             当前的行数等于之前的列数
-                            当前的列等于之前的总行数-之前的列数
+                            当前的列等于之前的总行数-之前的行数
                         */
                     }
                 }
@@ -239,7 +239,7 @@ class Tetris{
                         nextData[col][3-row] = preData[row][col]
                          /*顺时针旋转规则：
                             当前的行数等于之前的列数
-                            当前的列等于之前的总行数-之前的列数
+                            当前的列等于之前的总行数-之前的行数
                         */
                     }
                 }
@@ -255,14 +255,14 @@ class Tetris{
                 nextData[col][h-1-row] = this.data[row][col]
                  /*顺时针旋转规则：
                     当前的行数等于之前的列数
-                    当前的列等于之前的总行数-之前的列数
+                    当前的列等于之前的总行数-之前的行数
                 */
             }
         }
         return nextData;
     }
 
-    //逆时针旋转规则
+    //逆时针旋转规则：当前的列数等于之前的行数，当前的行数等于之前的总列数-之前的列数
     anticlockwise(){
         let w = this.width(),h = this.height();
         let nextData = buildMatrix(w,h)
@@ -282,30 +282,6 @@ class Tetris{
         
         let nextData = clockwise?this.clockwise():this.anticlockwise()
         let w = this.width(),h = this.height()
-        
-        // if(clockwise){
-        //     if((w===4&&h===1)||(w===1||h===4)){
-        //         if(w===4){
-        //             this.col+=2
-        //             this.row-=1
-        //         }else if(w===1){
-        //             this.row+=2
-        //             this.col-=2
-        //         }
-                
-        //     }
-        // }else{
-        //     if((w===4&&h===1)||(w===1||h===4)){
-        //         if(w===4){
-        //             this.col+=1
-        //             this.row-=1
-        //         }else if(w===1){
-        //             this.row+=1
-        //             this.col-=2
-        //         }
-                
-        //     }
-        // }
 
         
         let result = {

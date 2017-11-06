@@ -24,10 +24,12 @@ class Game extends Component {
         this.useAI = false
  
         let aiSeed = {
-            alpha:-0.03702270705799994,
-            beta:-0.12705154760967602,
-            gama:-0.15218776708445955,
-            delta:-0.027255935907477033
+            alpha:	-0.10780829375086226,
+            beta:	-0.16824383167659068,
+            gama:	-0.14330263146169922,
+            delta:	-0.0365702558555866
+          
+            
         }
 
         this.ai = new AI(aiSeed.alpha,
